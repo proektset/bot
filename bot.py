@@ -19,6 +19,7 @@ def back_menu(target="home"):
     return InlineKeyboardMarkup([[InlineKeyboardButton("← Назад", callback_data=target)]])
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # In groups keep interaction compact; detailed scenarios continue in private chat.
     text = (
         "ПРОЕКТСЕТЬ\n\n"
         "Профессиональное сообщество проектировщиков. "
@@ -129,6 +130,20 @@ async def kep_apt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     return ConversationHandler.END
 
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "ПРОЕКТСЕТЬ — бот профессионального сообщества.\n\n"
+        "Команды:\n/start — открыть меню\n/help — помощь\n/kep — расчёт КЭП"
+    )
+
+async def kep_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Откройте /start → Эффективность → Рассчитать КЭП."
+    )
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    print(f"Telegram bot error: {context.error!r}")
+
 def run():
     if not TOKEN:
         raise RuntimeError("Не задан TELEGRAM_BOT_TOKEN")
@@ -142,9 +157,12 @@ def run():
         fallbacks=[CommandHandler("start", start)],
     )
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("kep", kep_command))
     app.add_handler(conv)
     app.add_handler(CallbackQueryHandler(menu))
-    app.run_polling()
+    app.add_error_handler(error_handler)
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     run()
